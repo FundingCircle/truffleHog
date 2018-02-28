@@ -13,6 +13,7 @@ import re
 import json
 import stat
 from git import Repo
+from git import NULL_TREE
 try:
     from defaultRegexes.regexChecks import regexes
 except ImportError:
@@ -26,10 +27,12 @@ def main():
     parser.add_argument("--entropy", dest="do_entropy", help="Enable entropy checks")
     parser.add_argument("--since_commit", dest="since_commit", help="Only scan from a given commit hash")
     parser.add_argument("--max_depth", dest="max_depth", help="The max commit depth to go back when searching for secrets")
+    parser.add_argument("--use_current_branch", dest="use_current_branch", action="store_true", help="Only scan the current branch, skip remote checkout and branches")
     parser.add_argument('git_url', type=str, help='URL for secret searching')
     parser.set_defaults(regex=False)
     parser.set_defaults(rules={})
     parser.set_defaults(max_depth=1000000)
+    parser.set_defaults(use_current_branch=False)
     parser.set_defaults(since_commit=None)
     parser.set_defaults(entropy=True)
     args = parser.parse_args()
@@ -47,7 +50,7 @@ def main():
         for regex in rules:
             regexes[regex] = rules[regex]
     do_entropy = str2bool(args.do_entropy)
-    output = find_strings(args.git_url, args.since_commit, args.max_depth, args.output_json, args.do_regex, do_entropy)
+    output = find_strings(args.git_url, args.since_commit, args.max_depth, args.use_current_branch, args.output_json, args.do_regex, do_entropy)
     project_path = output["project_path"]
     shutil.rmtree(project_path, onerror=del_rw)
 
@@ -209,15 +212,19 @@ def regex_check(printableDiff, commit_time, branch_name, prev_commit, blob, comm
 
 
 
-def find_strings(git_url, since_commit=None, max_depth=None, printJson=False, do_regex=False, do_entropy=True, custom_regexes={}):
+def find_strings(git_url, since_commit=None, max_depth=None, use_current_branch=False, printJson=False, do_regex=False, do_entropy=True, custom_regexes={}):
     output = {"foundIssues": []}
     project_path = clone_git_repo(git_url)
     repo = Repo(project_path)
     already_searched = set()
-
+    active_branch = repo.active_branch
     for remote_branch in repo.remotes.origin.fetch():
         since_commit_reached = False
         branch_name = remote_branch.name.split('/')[1]
+
+        if use_current_branch and branch_name != active_branch:
+            continue
+
         try:
             repo.git.checkout(remote_branch, b=branch_name)
         except:
@@ -231,37 +238,35 @@ def find_strings(git_url, since_commit=None, max_depth=None, printJson=False, do
             if since_commit and since_commit_reached:
                 prev_commit = curr_commit
                 continue
-            if not prev_commit:
-                pass
-            else:
-                #avoid searching the same diffs
-                hashes = str(prev_commit) + str(curr_commit)
-                if hashes in already_searched:
-                    prev_commit = curr_commit
-                    continue
-                already_searched.add(hashes)
 
+            # if not prev_commit, then curr_commit is the newest commit. And we have nothing to diff with.
+            # But we will diff the first commit with NULL_TREE here to check the oldest code.
+            # In this way, no commit will be missed.
+            if not prev_commit:
+                diff = curr_commit.diff(NULL_TREE, create_patch=True)
+                prev_commit = curr_commit
+            else:
                 diff = prev_commit.diff(curr_commit, create_patch=True)
-                for blob in diff:
-                    printableDiff = blob.diff.decode('utf-8', errors='replace')
-                    if printableDiff.startswith("Binary files"):
-                        continue
-                    commit_time =  datetime.datetime.fromtimestamp(prev_commit.committed_date).strftime('%Y-%m-%d %H:%M:%S')
-                    foundIssues = []
-                    if do_entropy:
-                        entropicDiff = find_entropy(printableDiff, commit_time, branch_name, prev_commit, blob, commitHash)
-                        if entropicDiff:
-                            foundIssues.append(entropicDiff)
-                    if do_regex:
-                        found_regexes = regex_check(printableDiff, commit_time, branch_name, prev_commit, blob, commitHash, custom_regexes)
-                        foundIssues += found_regexes
-                    for foundIssue in foundIssues:
-                        print_results(printJson, foundIssue)
-                    output["foundIssues"] += foundIssues
+            for blob in diff:
+                printableDiff = blob.diff.decode('utf-8', errors='replace')
+                if printableDiff.startswith("Binary files"):
+                    continue
+                commit_time =  datetime.datetime.fromtimestamp(prev_commit.committed_date).strftime('%Y-%m-%d %H:%M:%S')
+                foundIssues = []
+                if do_entropy:
+                    entropicDiff = find_entropy(printableDiff, commit_time, branch_name, prev_commit, blob, prev_commit.hexsha)
+                    if entropicDiff:
+                        foundIssues.append(entropicDiff)
+                if do_regex:
+                    found_regexes = regex_check(printableDiff, commit_time, branch_name, prev_commit, blob, prev_commit.hexsha, custom_regexes)
+                    foundIssues += found_regexes
+                for foundIssue in foundIssues:
+                    print_results(printJson, foundIssue)
+                output["foundIssues"] += foundIssues
 
             prev_commit = curr_commit
-    output["project_path"] = project_path 
-    output["clone_uri"] = git_url 
+    output["project_path"] = project_path
+    output["clone_uri"] = git_url
     return output
 
 if __name__ == "__main__":
