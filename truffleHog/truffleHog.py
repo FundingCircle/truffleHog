@@ -248,11 +248,11 @@ def find_strings(git_url, since_commit=None, max_depth=None, printJson=False, do
                 commit_time =  datetime.datetime.fromtimestamp(prev_commit.committed_date).strftime('%Y-%m-%d %H:%M:%S')
                 foundIssues = []
                 if do_entropy:
-                    entropicDiff = find_entropy(printableDiff, commit_time, branch_name, prev_commit, blob, commitHash)
+                    entropicDiff = find_entropy(printableDiff, commit_time, branch_name, prev_commit, blob, prev_commit.hexsha)
                     if entropicDiff:
                         foundIssues.append(entropicDiff)
                 if do_regex:
-                    found_regexes = regex_check(printableDiff, commit_time, branch_name, prev_commit, blob, commitHash, custom_regexes)
+                    found_regexes = regex_check(printableDiff, commit_time, branch_name, prev_commit, blob, prev_commit.hexsha, custom_regexes)
                     foundIssues += found_regexes
                 for foundIssue in foundIssues:
                     print_results(printJson, foundIssue)
