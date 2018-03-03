@@ -13,6 +13,8 @@ In some cases these fixes were applied by merging open PRs from upstream, others
 
 * Commit message and commit hash mismatch fixed in `add06cfe4833`
 * Option to only scan the current branch `0d4e25e27cea`
+* First commit is missed dxa4481/truffleHog#83
+* Only match strings that were introduced in a diff dxa4481/truffleHog#45
 
 ***
 

@@ -158,6 +158,8 @@ def find_entropy(printableDiff, commit_time, branch_name, prev_commit, blob, com
     stringsFound = []
     lines = printableDiff.split("\n")
     for line in lines:
+        if not line.startswith("+"):
+            continue
         for word in line.split():
             base64_strings = get_strings_of_set(word, BASE64_CHARS)
             hex_strings = get_strings_of_set(word, HEX_CHARS)
