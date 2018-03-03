@@ -1,6 +1,8 @@
 # Truffle Hog
 Searches through git repositories for secrets, digging deep into commit history and branches. This is effective at finding secrets accidentally committed.
 
+***
+
 ## This Fork
 
 We wanted to use truffleHog for continuous scanning in a CI pipeline and git hooks as shown in https://github.com/ministryofjustice/git-secrets-ahoy.
@@ -9,8 +11,10 @@ While doing this work we found a bunch of minor issues, which have been incorpor
 
 In some cases these fixes were applied by merging open PRs from upstream, others are inspired by open PRs, and some we just decided to do. We intend to package up all of these changes for consumption into upstream.
 
+* Commit message and commit hash mismatch fixed in `add06cfe4833`
+* Option to only scan the current branch `0d4e25e27cea`
 
-================
+***
 
 
 ## NEW
