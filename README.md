@@ -1,6 +1,18 @@
 # Truffle Hog
 Searches through git repositories for secrets, digging deep into commit history and branches. This is effective at finding secrets accidentally committed.
 
+## This Fork
+
+We wanted to use truffleHog for continuous scanning in a CI pipeline and git hooks as shown in https://github.com/ministryofjustice/git-secrets-ahoy.
+
+While doing this work we found a bunch of minor issues, which have been incorporated into this branch and are detailed below.
+
+In some cases these fixes were applied by merging open PRs from upstream, others are inspired by open PRs, and some we just decided to do. We intend to package up all of these changes for consumption into upstream.
+
+
+================
+
+
 ## NEW
 Trufflehog previously functioned by running entropy checks on git diffs. This functionality still exists, but high signal regex checks have been added, and the ability to surpress entropy checking has also been added.
 
