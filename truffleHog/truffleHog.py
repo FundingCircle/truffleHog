@@ -223,8 +223,8 @@ def find_strings(git_url, since_commit=None, max_depth=None, use_current_branch=
     for remote_branch in repo.remotes.origin.fetch():
         since_commit_reached = False
         branch_name = remote_branch.name.split('/')[1]
-
-        if branch_name != active_branch:
+       
+        if use_current_branch and branch_name != active_branch:
             continue
 
         try:
