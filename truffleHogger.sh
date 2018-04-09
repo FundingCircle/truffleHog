@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 for i in "$@" ; do
   if [[ $i == "--json" ]]; then
     json=true
