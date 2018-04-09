@@ -1,6 +1,7 @@
 FROM python:3-alpine
 
-RUN apk add --no-cache bash git wget jq
+RUN apk update && apk upgrade
+RUN apk add --no-cache bash git jq
 WORKDIR /app/trufflehog/
 
 COPY requirements.txt /app/trufflehog/requirements.txt

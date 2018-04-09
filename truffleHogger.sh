@@ -6,9 +6,9 @@ for i in "$@" ; do
 done
 
 if [[ $json ]]; then
-  output="$(trufflehog --regex --rules /trufflehog/regex.rules.json file:///git "$@" | jq -C .)"
+  output="$(trufflehog --regex --rules /app/trufflehog/regex.rules.json file:///git "$@" | jq -C .)"
 else
-  output="$(trufflehog --regex --rules /trufflehog/regex.rules.json file:///git "$@")"
+  output="$(trufflehog --regex --rules /app/trufflehog/regex.rules.json file:///git "$@")"
 fi
 
 if [ "${output}" != "" ]; then
