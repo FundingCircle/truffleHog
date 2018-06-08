@@ -11,10 +11,10 @@ jobs:
           command:      echo $ARTIFACTORY_TOKEN | docker login --username "$ARTIFACTORY_USER" --password-stdin fundingcircle-docker-registry.jfrog.io
       - run:
           name:         Build
-          command:      docker build . --tag $ARTIFACTORY_DOCKER_REGISTRY/$CIRCLE_PROJECT_REPONAME:latest
+          command:      docker build . --tag `echo "$ARTIFACTORY_DOCKER_REGISTRY/$CIRCLE_PROJECT_REPONAME"| tr '[:upper:]' '[:lower:]'`:latest
       - run:
           name:         Push
-          command:      docker push $ARTIFACTORY_DOCKER_REGISTRY/$CIRCLE_PROJECT_REPONAME:latest
+          command:      docker push `echo "$ARTIFACTORY_DOCKER_REGISTRY/$CIRCLE_PROJECT_REPONAME"| tr '[:upper:]' '[:lower:]'`:latest
 
 workflows:
   version:              2
