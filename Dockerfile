@@ -1,13 +1,13 @@
 FROM python:3-alpine
 
-RUN apk update && apk upgrade
-RUN apk add --no-cache bash git jq
+RUN apk add --no-cache --upgrade bash git jq
+
 WORKDIR /app/trufflehog/
 
-COPY requirements.txt /app/trufflehog/requirements.txt
-RUN pip install -r /app/trufflehog/requirements.txt
-COPY . /app/trufflehog
+COPY requirements.txt .
+RUN pip install --no-cache-dir --requirement requirements.txt
+COPY . .
 
-RUN pip install /app/trufflehog
+RUN pip install .
 
 ENTRYPOINT ["/app/trufflehog/truffleHogger.sh"]
